@@ -1,0 +1,269 @@
+<!DOCTYPE ahtml>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>サイコロ＆カウンター</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a202c; /* ダークモードの背景色 */
+            color: #e2e8f0; /* ダークモードの文字色 */
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #2d3748; /* ダークモードのコンテナ背景色 */
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            animation: fadeIn 0.8s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .dice {
+            width: 100px;
+            height: 100px;
+            background-color: #4c51bf; /* ダークモードのサイコロ色 */
+            border-radius: 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            font-weight: bold;
+            color: white;
+            transition: transform 0.2s ease-in-out;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            user-select: none;
+        }
+        .roll-animation {
+            animation: roll 0.5s ease-in-out forwards;
+        }
+        @keyframes roll {
+            0% { transform: rotateY(0deg) rotateX(0deg); }
+            50% { transform: rotateY(360deg) rotateX(360deg) scale(1.1); }
+            100% { transform: rotateY(720deg) rotateX(720deg); }
+        }
+        .button-group button {
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        .button-group button:active {
+            transform: scale(0.95);
+        }
+        .modal {
+            background-color: rgba(0, 0, 0, 0.7); /* ダークモードのモーダル背景色 */
+            display: none;
+        }
+        .modal-content {
+            background-color: #2d3748; /* ダークモードのモーダルコンテンツ背景色 */
+            color: #e2e8f0;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8 flex items-center justify-center min-h-screen">
+    <div class="container text-center">
+
+        <!-- サイコロセクション -->
+        <div class="mb-10">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-3xl font-bold text-gray-100">サイコロ</h1>
+                <button id="log-button" class="px-5 py-2 bg-gray-600 text-white font-semibold rounded-full shadow-lg hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-400 transition duration-300 ease-in-out">
+                    ログ
+                </button>
+            </div>
+            <div class="flex flex-col items-center">
+                <div id="dice-container" class="dice">?</div>
+                <button id="roll-button" class="mt-6 px-8 py-3 bg-blue-600 text-white font-semibold rounded-full shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-400 transition duration-300 ease-in-out">
+                    サイコロを振る
+                </button>
+            </div>
+        </div>
+
+        <hr class="my-10 border-t-2 border-gray-600">
+        
+        <!-- カウンターセクション -->
+        <div>
+            <div class="flex justify-between items-center mb-4">
+                <h1 class="text-3xl font-bold text-gray-100">カウンター</h1>
+                <button id="toggle-counter-button" class="text-sm text-blue-400 font-medium hover:underline">表示を切り替える</button>
+            </div>
+            <div id="counter-section">
+                <!-- カウンター表示部分を直接入力可能に -->
+                <div class="text-6xl font-extrabold mb-6 text-gray-100" id="counter-display" contenteditable="true">0</div>
+                <div class="button-group flex flex-wrap justify-center gap-4">
+                    <button onclick="changeCounter(-10)" class="px-5 py-2 bg-red-600 text-white font-semibold rounded-full shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400">-10</button>
+                    <button onclick="changeCounter(-5)" class="px-5 py-2 bg-red-500 text-white font-semibold rounded-full shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400">-5</button>
+                    <button onclick="changeCounter(-1)" class="px-5 py-2 bg-red-400 text-white font-semibold rounded-full shadow-md hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-400">-1</button>
+                    <button onclick="changeCounter(1)" class="px-5 py-2 bg-green-400 text-white font-semibold rounded-full shadow-md hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-green-400">+1</button>
+                    <button onclick="changeCounter(5)" class="px-5 py-2 bg-green-500 text-white font-semibold rounded-full shadow-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400">+5</button>
+                    <button onclick="changeCounter(10)" class="px-5 py-2 bg-green-600 text-white font-semibold rounded-full shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400">+10</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ログモーダル -->
+    <div id="log-modal" class="modal fixed inset-0 z-50 flex items-center justify-center">
+        <div class="modal-content w-11/12 md:w-2/3 lg:w-1/2 p-6 rounded-2xl shadow-2xl animate-fadeIn">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-gray-100">アクティビティログ</h2>
+                <button id="close-modal-button" class="text-gray-400 hover:text-gray-100 text-xl font-bold">&times;</button>
+            </div>
+            <div class="max-h-80 overflow-y-auto pr-2">
+                <ul id="log-list" class="list-none p-0 text-left"></ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- サイコロの音を再生するオーディオ要素 -->
+    <audio id="dice-sound" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" preload="auto"></audio>
+
+    <script>
+        const diceContainer = document.getElementById('dice-container');
+        const rollButton = document.getElementById('roll-button');
+        const logButton = document.getElementById('log-button');
+        const logModal = document.getElementById('log-modal');
+        const closeModalButton = document.getElementById('close-modal-button');
+        const logList = document.getElementById('log-list');
+
+        const counterDisplay = document.getElementById('counter-display');
+        const counterSection = document.getElementById('counter-section');
+        const toggleCounterButton = document.getElementById('toggle-counter-button');
+        
+        const diceSound = document.getElementById('dice-sound');
+        
+        let currentCounter = 0;
+        let activityLog = []; 
+
+        // サイコロを振る関数
+        function rollDice() {
+            // アニメーションをリセット
+            diceContainer.classList.remove('roll-animation');
+            void diceContainer.offsetWidth; // 強制的にリフロー
+
+            // サウンドを再生
+            diceSound.currentTime = 0;
+            diceSound.play().catch(e => console.error("音声再生エラー:", e));
+
+            const rollResult = Math.floor(Math.random() * 6) + 1;
+            
+            // アニメーションを開始
+            diceContainer.classList.add('roll-animation');
+            
+            // アニメーション完了後に結果を表示
+            setTimeout(() => {
+                diceContainer.textContent = rollResult;
+                const timestamp = new Date().toLocaleString('ja-JP', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                activityLog.push({ 
+                    timestamp: timestamp,
+                    action: 'サイコロを振る',
+                    result: rollResult
+                });
+            }, 500); // アニメーション時間と合わせる
+        }
+
+        // ログモーダルを表示する関数
+        function showLogModal() {
+            logList.innerHTML = ''; // ログリストをクリア
+            activityLog.forEach(entry => {
+                const li = document.createElement('li');
+                li.textContent = `${entry.timestamp} - ${entry.action}: 結果 ${entry.result}`;
+                li.classList.add('p-2', 'border-b', 'border-gray-600', 'last:border-none');
+                logList.prepend(li); // 新しいログを上に追加
+            });
+            logModal.style.display = 'flex';
+        }
+
+        // カウンターを変更する関数
+        function changeCounter(value) {
+            const oldValue = currentCounter;
+            currentCounter += value;
+            
+            counterDisplay.textContent = currentCounter;
+
+            const timestamp = new Date().toLocaleString('ja-JP', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            activityLog.push({ 
+                timestamp: timestamp,
+                action: `カウンターを${value > 0 ? '+' : ''}${value}変更`,
+                result: `${oldValue} → ${currentCounter}`
+            });
+        }
+
+        // カウンターの表示を切り替える関数
+        function toggleCounter() {
+            counterSection.classList.toggle('hidden');
+            if (counterSection.classList.contains('hidden')) {
+                toggleCounterButton.textContent = '表示';
+            } else {
+                toggleCounterButton.textContent = '非表示';
+            }
+        }
+
+        // 直接入力されたカウンター値を更新する関数
+        function updateCounterFromInput() {
+            const oldValue = currentCounter;
+            let inputValue = parseInt(counterDisplay.textContent, 10);
+            
+            if (isNaN(inputValue)) {
+                // 入力が無効な場合は元の値に戻す
+                counterDisplay.textContent = oldValue;
+                return;
+            }
+            
+            currentCounter = inputValue;
+            counterDisplay.textContent = currentCounter; // 確実に反映させる
+            
+            const timestamp = new Date().toLocaleString('ja-JP', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            activityLog.push({
+                timestamp: timestamp,
+                action: 'カウンターに直接入力',
+                result: `${oldValue} → ${currentCounter}`
+            });
+        }
+
+        // イベントリスナー
+        rollButton.addEventListener('click', rollDice);
+        logButton.addEventListener('click', showLogModal);
+        closeModalButton.addEventListener('click', () => {
+            logModal.style.display = 'none';
+        });
+        toggleCounterButton.addEventListener('click', toggleCounter);
+
+        // 新しいイベントリスナー
+        counterDisplay.addEventListener('blur', updateCounterFromInput);
+        counterDisplay.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Enterキーによる改行を防ぐ
+                updateCounterFromInput();
+                counterDisplay.blur(); // 入力からフォーカスを外す
+            }
+        });
+
+    </script>
+</body>
+</html>
